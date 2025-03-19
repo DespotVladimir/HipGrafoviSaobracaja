@@ -1,11 +1,7 @@
 import time
 
-#import hyper_graph as hp
-import networkx as nx
-import osmnx as ox
-
 import graph
-import city_graphs as cg
+from city_graphs import graph_from_file
 import hyper_graph as hg
 from random import choice
 
@@ -55,12 +51,16 @@ def simulate_traffic_path(city_graph,nodes_used):
 
 if __name__ == "__main__":
     print("Regular graph: ")
-    banja_luka_graph = graph.Graph(cg.graph_from_file("Banja Luka"))
+    banja_luka_graph = graph.Graph(graph_from_file("Banja Luka"))
     simulate_traffic(banja_luka_graph)
     print()
     print("HyperGraph: ")
-    banja_luka_graph = hg.HyperGraph(cg.graph_from_file("Banja Luka"))
+    banja_luka_graph = hg.HyperGraph(graph_from_file("Banja Luka"))
     simulate_traffic(banja_luka_graph)
+
+
+
+
 
 
 
