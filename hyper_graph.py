@@ -12,6 +12,7 @@ class HyperGraph:
             self.neighbouring_list[node] = []
             for neighbour in neighbours:
                 self.edges[(node, neighbour)] = 1
+                self.edges[(neighbour, node)] = 1
                 self.neighbouring_list[node].append(neighbour)
 
         self.nodes = list(self.nodes)
@@ -25,21 +26,22 @@ class HyperGraph:
 
             # first one in the "queue" is the main node
             node = main_queue[0]
-
             # "queue" for checking neighbours of main node and deleting them
             neighbour_queue = list(self.neighbouring_list[node])
 
             # merge neighbours if there are more than 4 on one
             if len(neighbour_queue) >= 4:
+                #print("Chosen node: ", node)
                 while len(neighbour_queue) > 0:
 
                     neighbour = neighbour_queue[0]
+                    #print("Chosen neighbour: ", neighbour)
 
                     # remove main node before checking second neighbours
                     if neighbour not in self.neighbouring_list:
                         neighbour_queue.pop(0)
                         continue
-                    if node in self.neighbouring_list[neighbour]:
+                    if neighbour in self.neighbouring_list and node in self.neighbouring_list[neighbour]:
                         self.neighbouring_list[neighbour].remove(node)
 
 
@@ -59,13 +61,16 @@ class HyperGraph:
                         # remove first neighbour
 
                         second_neighbour = second_neighbour_queue[0]
+                        #print("Chosen second neighbour: ", second_neighbour)
+
+
                         if (neighbour, second_neighbour) in self.edges:
                             self.edges.pop((neighbour, second_neighbour))
                         if (second_neighbour, neighbour) in self.edges:
                             self.edges.pop((second_neighbour, neighbour))
-                        if second_neighbour in self.neighbouring_list:
-                            if neighbour in self.neighbouring_list[second_neighbour]:
-                                self.neighbouring_list[second_neighbour].remove(neighbour)
+
+                        if second_neighbour in self.neighbouring_list and neighbour in self.neighbouring_list[second_neighbour]:
+                            self.neighbouring_list[second_neighbour].remove(neighbour)
 
                         # add main node
                         self.edges[(node, second_neighbour)] = 1
@@ -83,16 +88,15 @@ class HyperGraph:
                         self.edges.pop((neighbour, node))
                     if (node, neighbour) in self.edges:
                         self.edges.pop((node, neighbour))
-
-                    self.neighbouring_list.pop(neighbour)
-
+                    if neighbour in self.neighbouring_list:
+                        self.neighbouring_list.pop(neighbour)
                     if neighbour in self.nodes:
-                     self.nodes.remove(neighbour)
+                        self.nodes.remove(neighbour)
 
                     if neighbour in main_queue:
                         main_queue.remove(neighbour)
                     neighbour_queue.pop(0)
-                    #print("Popping: ", neighbour)
+
 
             main_queue.pop(0)
 
@@ -170,9 +174,9 @@ if __name__ == "__main__":
     import graph
 
     g = graph.Graph(cg.graph_from_file("Banja Luka"))
-    print(len(g.nodes))
+    print("Number of nodes before: ",len(g.nodes))
     g = HyperGraph(cg.graph_from_file("Banja Luka"))
-    print(len(g.nodes))
+    print("Number of nodes after: ",len(g.nodes))
 
     start_node = choice(list(g.nodes))
     end_node = choice(list(g.nodes))
