@@ -1,8 +1,7 @@
 from sys import maxsize
 
-
 class HyperGraph:
-    def __init__(self, neighbouring_list: dict[int,list[int]]) -> None:
+    def __init__(self, neighbouring_list: dict[int, list[int]]) -> None:
         self.nodes = set()
         self.neighbouring_list = dict()
         self.edges = dict()
@@ -61,7 +60,7 @@ class HyperGraph:
                         # remove first neighbour
 
                         second_neighbour = second_neighbour_queue[0]
-                        #print("Chosen second neighbour: ", second_neighbour)
+                        # print(" Chosen second neighbour: ", second_neighbour)
 
 
                         if (neighbour, second_neighbour) in self.edges:
@@ -96,6 +95,77 @@ class HyperGraph:
                     if neighbour in main_queue:
                         main_queue.remove(neighbour)
                     neighbour_queue.pop(0)
+
+            # remove node if they are on the same road and connect neighbours
+            elif len(neighbour_queue) == 2:
+
+                neighbour_back = neighbour_queue[0]
+                neighbour_front = neighbour_queue[1]
+
+                # connect neighbours in neighbouring list and edges
+                prevent = False
+                if neighbour_back not in self.neighbouring_list:
+                    prevent = True
+                    self.neighbouring_list[node].remove(neighbour_back)
+                if neighbour_front not in self.neighbouring_list:
+                    prevent = True
+                    self.neighbouring_list[node].remove(neighbour_front)
+
+                if prevent:
+                    main_queue.pop(0)
+                    continue
+                if neighbour_front not in self.neighbouring_list[neighbour_back]:
+                    self.neighbouring_list[neighbour_back].append(neighbour_front)
+                if neighbour_back not in self.neighbouring_list[neighbour_front]:
+                    self.neighbouring_list[neighbour_front].append(neighbour_back)
+
+                self.edges[(neighbour_back, neighbour_front)] = 1
+                self.edges[(neighbour_front, neighbour_back)] = 1
+
+                # remove from neighbouring list and from neighbouring list of the neighbour
+                if node in self.neighbouring_list:
+                    self.neighbouring_list.pop(node)
+                if neighbour_front in self.neighbouring_list and node in self.neighbouring_list[neighbour_front]:
+                    self.neighbouring_list[neighbour_front].remove(node)
+                if neighbour_back in self.neighbouring_list and node in self.neighbouring_list[neighbour_back]:
+                    self.neighbouring_list[neighbour_back].remove(node)
+
+                # remove node from all nodes
+                if node in self.nodes:
+                    self.nodes.remove(node)
+
+                # remove edges
+                if (node, neighbour_front) in self.edges:
+                    self.edges.pop((node, neighbour_front))
+                if (neighbour_front, node) in self.edges:
+                    self.edges.pop((neighbour_front, node))
+                if (node, neighbour_back) in self.edges:
+                    self.edges.pop((node, neighbour_back))
+                if (neighbour_back, node) in self.edges:
+                    self.edges.pop((neighbour_back, node))
+
+
+            # remove node if it's a dead end
+            elif len(neighbour_queue) == 1:
+
+                dead_end_neighbour = neighbour_queue[0]
+                
+                # remove from neighbouring list and from neighbouring list of the neighbour
+                if node in self.neighbouring_list:
+                    self.neighbouring_list.pop(node)
+                if dead_end_neighbour in self.neighbouring_list and node in self.neighbouring_list[dead_end_neighbour]:
+                    self.neighbouring_list[dead_end_neighbour].remove(node)
+
+                # remove from all nodes
+                if node in self.nodes:
+                    self.nodes.remove(node)
+                
+                # remove edges
+                if (node, dead_end_neighbour) in self.edges:
+                    self.edges.pop((node, dead_end_neighbour))
+                if (dead_end_neighbour, node) in self.edges:
+                    self.edges.pop((dead_end_neighbour, node))
+
 
 
             main_queue.pop(0)

@@ -4,8 +4,9 @@ import graph
 from city_graphs import graph_from_file
 import hyper_graph as hg
 from random import choice
+import cluster_graph as cg
 
-def simulate_traffic(city_graph,*,num_of_simulated_paths = 10):
+def simulate_traffic(city_graph,num_of_simulated_paths = 10):
 
     nodes_used = dict()
     print("Number of nodes: ",len(city_graph.nodes))
@@ -23,14 +24,14 @@ def simulate_traffic(city_graph,*,num_of_simulated_paths = 10):
     print("Simulation time: ",end_time-start_time)
     print("Average time per simulation: ",(end_time-start_time)/num_of_simulated_paths)
 
-    """
+
     print("Most used nodes: ")
-    for _ in range(len(nodes_used)//10):
+    for _ in range(min(10,len(nodes_used)//10)):
         key,value = max(list(nodes_used.items()),key=lambda x:x[1])
         print(""+str(key)+": "+str(value),end="; ")
         nodes_used.pop(key)
     print()
-    """
+
 
     return nodes_used
 
@@ -50,13 +51,32 @@ def simulate_traffic_path(city_graph,nodes_used):
     return start_node,end_node,path
 
 if __name__ == "__main__":
+
+    main_graph = graph_from_file("Prijedor")
+
     print("Regular graph: ")
-    banja_luka_graph = graph.Graph(graph_from_file("Banja Luka"))
-    simulate_traffic(banja_luka_graph)
+    start_time = time.time()
+    banja_luka_graph = graph.Graph(main_graph)
+    end_time = time.time()
+    print("Creation time: ", end_time - start_time)
+    simulate_traffic(banja_luka_graph,num_of_simulated_paths=100)
     print()
+
     print("HyperGraph: ")
-    banja_luka_graph = hg.HyperGraph(graph_from_file("Banja Luka"))
-    simulate_traffic(banja_luka_graph)
+    start_time = time.time()
+    banja_luka_graph = hg.HyperGraph(main_graph)
+    end_time = time.time()
+    print("Creation time: ", end_time - start_time)
+    simulate_traffic(banja_luka_graph,num_of_simulated_paths=100)
+    print()
+
+    print("ClusterGraph: ")
+    start_time = time.time()
+    banja_luka_graph = cg.ClusterGraph(main_graph)
+    end_time = time.time()
+    print("Creation time: ",end_time-start_time)
+    simulate_traffic(banja_luka_graph,num_of_simulated_paths=100)
+    print()
 
 
 
