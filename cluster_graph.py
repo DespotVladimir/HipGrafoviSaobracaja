@@ -4,14 +4,15 @@ class ClusterGraph:
     def __init__(self, neighbouring_list: dict[int,list[int]],max_cluster_size=10) -> None:
         self.neighbouring_list = dict(neighbouring_list)
         self.cluster_list = dict()
+        self.edges = dict()
 
         self.cluster_list = self.local_clustering(self.neighbouring_list, max_cluster_size=max_cluster_size)
         self.neighbouring_list = self.create_hypergraph(self.cluster_list, self.neighbouring_list)
 
         self.nodes = list(self.neighbouring_list.keys())
 
-    @staticmethod
-    def local_clustering(graph, max_cluster_size=10):
+
+    def local_clustering(self,graph, max_cluster_size=10):
         visited = set()
         clusters = {}
         cluster_id = 0
@@ -32,8 +33,8 @@ class ClusterGraph:
         return clusters
 
 
-    @staticmethod
-    def create_hypergraph(clusters, original_graph : dict[int,list[int]]):
+
+    def create_hypergraph(self,clusters, original_graph : dict[int,list[int]]):
         hypergraph = {}
         cluster_map = {node: cluster for cluster, nodes in clusters.items() for node in nodes}
 
@@ -44,6 +45,8 @@ class ClusterGraph:
                     neighbor_cluster = cluster_map.get(neighbor)
                     if neighbor_cluster is not None and neighbor_cluster != cluster_id:
                         hypergraph[cluster_id].add(neighbor_cluster)
+                        self.edges[(node, cluster_id)] = 1
+                        self.edges[(cluster_id, node)] = 1
 
         return {k: list(v) for k, v in hypergraph.items()}
 
@@ -90,7 +93,10 @@ class ClusterGraph:
             for neighbour in self.neighbouring_list[x]:
                 if neighbour not in self.neighbouring_list.keys():
                     continue
-                weight = 1
+                if (x,neighbour) not in self.edges:
+                    weight = 1
+                else:
+                    weight = self.edges[(x,neighbour)]
                 if neighbour not in visited and (dist[neighbour])[1] > dist[x][1] + weight:
                     dist[neighbour] = (x,dist[x][1] + weight)
 

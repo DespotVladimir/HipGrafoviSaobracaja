@@ -5,6 +5,8 @@ class HyperGraph:
         self.nodes = set()
         self.neighbouring_list = dict()
         self.edges = dict()
+        self.hyper_edges = dict()
+
 
         for node, neighbours in neighbouring_list.items():
             self.nodes.add(node)
@@ -91,7 +93,7 @@ class HyperGraph:
                         self.neighbouring_list.pop(neighbour)
                     if neighbour in self.nodes:
                         self.nodes.remove(neighbour)
-
+                    self.hyper_edges.setdefault(node, []).append(neighbour)
                     if neighbour in main_queue:
                         main_queue.remove(neighbour)
                     neighbour_queue.pop(0)
@@ -189,6 +191,7 @@ class HyperGraph:
 
         path.append(start)
         path.reverse()
+
         return path
 
 
@@ -237,6 +240,9 @@ class HyperGraph:
 
         return min_index
 
+
+
+
 if __name__ == "__main__":
 
     import city_graphs as cg
@@ -247,7 +253,7 @@ if __name__ == "__main__":
     print("Number of nodes before: ",len(g.nodes))
     g = HyperGraph(cg.graph_from_file("Banja Luka"))
     print("Number of nodes after: ",len(g.nodes))
-
+    print(g.hyper_edges)
     start_node = choice(list(g.nodes))
     end_node = choice(list(g.nodes))
     print(start_node,end_node,g.shortest_path(start_node, end_node))

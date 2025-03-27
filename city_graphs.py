@@ -1,8 +1,8 @@
 import osmnx as ox
 
-def get_city_graph(city_name: str):
-
-    graph = ox.graph_from_place(city_name, network_type="all")
+def get_city_graph(city_name: str, network_type: str = "all"):
+    ox.io.settings.log_console = True
+    graph = ox.graph_from_place(city_name, network_type=network_type)
     print(city_name + " Graph obtained ("+str(len(graph))+" nodes)")
     edges = dict()
     for node1,node2,_ in graph.edges:

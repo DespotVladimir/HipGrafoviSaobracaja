@@ -6,19 +6,25 @@ import hyper_graph as hg
 from random import choice
 import cluster_graph as cg
 
-def simulate_traffic(city_graph,num_of_simulated_paths = 10):
+def simulate_traffic(city_graph,num_of_simulated_paths = 10,*,printall=True):
 
     nodes_used = dict()
     print("Number of nodes: ",len(city_graph.nodes))
 
     print("Number of simulations: ",num_of_simulated_paths)
-    print("#: (start,end) - [path]")
+
+
+    if printall:
+        print("#: (start,end) - [path]")
 
     start_time = time.time()
     for i in range(num_of_simulated_paths):
-        start_node, end_node, path = simulate_traffic_path(city_graph, nodes_used)
-        print(str(i + 1) + ": (" + str(start_node) + ", " + str(end_node) + ")" + " - " + str(path))
-
+        try:
+            start_node, end_node, path = simulate_traffic_path(city_graph, nodes_used)
+        except:
+            start_node = end_node = path = "ERROR"
+        if printall:
+            print(str(i + 1) + ": (" + str(start_node) + ", " + str(end_node) + ")" + " - " + str(path))
 
     end_time = time.time()
     print("Simulation time: ",end_time-start_time)
@@ -52,30 +58,30 @@ def simulate_traffic_path(city_graph,nodes_used):
 
 if __name__ == "__main__":
 
-    main_graph = graph_from_file("Prijedor")
+    main_graph = graph_from_file("RepublicofSrpska")
 
     print("Regular graph: ")
     start_time = time.time()
-    banja_luka_graph = graph.Graph(main_graph)
+    #banja_luka_graph = graph.Graph(main_graph)
     end_time = time.time()
     print("Creation time: ", end_time - start_time)
-    simulate_traffic(banja_luka_graph,num_of_simulated_paths=100)
+    #simulate_traffic(banja_luka_graph,num_of_simulated_paths=500,printall=False)
     print()
 
     print("HyperGraph: ")
     start_time = time.time()
-    banja_luka_graph = hg.HyperGraph(main_graph)
+    #banja_luka_graph = hg.HyperGraph(main_graph)
     end_time = time.time()
     print("Creation time: ", end_time - start_time)
-    simulate_traffic(banja_luka_graph,num_of_simulated_paths=100)
+    #simulate_traffic(banja_luka_graph,num_of_simulated_paths=500,printall=False)
     print()
 
     print("ClusterGraph: ")
     start_time = time.time()
-    banja_luka_graph = cg.ClusterGraph(main_graph)
+    banja_luka_graph = cg.ClusterGraph(main_graph,max_cluster_size = 50)
     end_time = time.time()
     print("Creation time: ",end_time-start_time)
-    simulate_traffic(banja_luka_graph,num_of_simulated_paths=100)
+    simulate_traffic(banja_luka_graph,num_of_simulated_paths=10,printall=True)
     print()
 
 
