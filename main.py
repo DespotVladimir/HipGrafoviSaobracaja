@@ -58,28 +58,18 @@ if __name__ == "__main__":
     print("Obtaining graph from file...")
     main_graph = graph_from_file("Banja Luka")
 
-
     print("Graph: ")
     start_time = time.time()
     banja_luka_graph = main_graph.copy()
     end_time = time.time()
     print("Creation time: ", end_time - start_time)
-    simulate_traffic(banja_luka_graph, num_of_simulated_paths=10000, printall=False)
+    simulate_traffic(banja_luka_graph, num_of_simulated_paths=1000, printall=False)
     print()
-
 
     print("ClusterGraph: ")
     start_time = time.time()
     banja_luka_graph = cg.ClusterGraph(main_graph,500)
     end_time = time.time()
     print("Creation time: ",end_time-start_time)
-    simulate_traffic(banja_luka_graph.get_cluster_graph(),num_of_simulated_paths=10000,printall=False)
+    simulate_traffic(banja_luka_graph.get_cluster_graph(),num_of_simulated_paths=1000,printall=False)
     print()
-
-
-
-
-
-
-
-
