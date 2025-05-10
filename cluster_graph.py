@@ -1,10 +1,6 @@
 import math
-
-import networkx
 import networkx as nx
 import osmnx as ox
-
-import city_graphs
 
 
 class ClusterGraph:
@@ -37,57 +33,50 @@ class ClusterGraph:
         Mapping of frozenset({cluster_u, cluster_v}) -> list of original edges (u, v) connecting those clusters.
     """
     def __init__(self, G: nx.Graph, threshold: float = 2000.0):
-        # Project to a metric CRS (units in meters)
+        self.G_orig = G.to_undirected() if isinstance(G, nx.MultiDiGraph) else G.copy()
+        self.nodes  = G.nodes()
+
         self.G_proj = ox.project_graph(G)
+        g_ll = ox.project_graph(G, to_latlong=True)
+        self.long_lat = {n: (d['x'], d['y']) for n, d in g_ll.nodes(data=True)}
+
         self.threshold = threshold
-        # Extract node positions in projected CRS
-        self.pos = {node: (data['x'], data['y'])
-                    for node, data in self.G_proj.nodes(data=True)}
-        # Placeholders
         self.node_to_cluster = {}
         self.clusters = {}
-        self.cluster_graph = None
         self.hyperedges = {}
+        self.cluster_graph = None
+
         self.cluster()
 
     def cluster(self) -> nx.Graph:
-        """
-        Perform radius-based clustering: each cluster is a ball of radius threshold around a seed node.
-        """
-        # Prepare unassigned nodes set
-        unassigned = set(self.pos.keys())
+
+        Gp = self.G_proj
+        unassigned = set(Gp.nodes())
         comps = []
 
-        # Greedy clustering by seed
-        # Sort for deterministic behavior
         for seed in sorted(unassigned):
             if seed not in unassigned:
                 continue
-            sx, sy = self.pos[seed]
-            # Nodes within threshold of the seed
-            comp = {n for n in unassigned
-                    if math.hypot(self.pos[n][0] - sx, self.pos[n][1] - sy) <= self.threshold}
-            # Assign cluster
+            lengths = nx.single_source_dijkstra_path_length(
+                Gp, seed, cutoff=self.threshold, weight='length'
+            )
+            comp = set(lengths.keys())
             cid = len(comps)
             for n in comp:
                 self.node_to_cluster[n] = cid
             comps.append(comp)
-            # Remove from unassigned
             unassigned -= comp
 
-        # Store clusters dict mapping ID -> nodes
-        self.clusters = {cid: comp for cid, comp in enumerate(comps)}
+        self.clusters = {i: comp for i, comp in enumerate(comps)}
 
-        # Build cluster-level graph
         C = nx.Graph()
-        for cid, comp in enumerate(comps):
-            xs = [self.pos[n][0] for n in comp]
-            ys = [self.pos[n][1] for n in comp]
-            centroid = (sum(xs) / len(xs), sum(ys) / len(ys))
-            C.add_node(cid, members=list(comp), centroid=centroid)
+        for cid, members in self.clusters.items():
+            xs = [self.long_lat[n][0] for n in members]
+            ys = [self.long_lat[n][1] for n in members]
+            centroid = (sum(xs)/len(xs), sum(ys)/len(ys)) if members else (0,0)
+            C.add_node(cid, members=list(members), centroid=centroid)
 
-        # Build hyperedges dict and weighted edges between clusters
-        for u, v in self.G_proj.edges():
+        for u, v, data in self.G_orig.edges(data=True):
             cu = self.node_to_cluster.get(u)
             cv = self.node_to_cluster.get(v)
             if cu is None or cv is None or cu == cv:
@@ -132,11 +121,18 @@ class ClusterGraph:
             self.cluster()
         return self.hyperedges
 
+    def get_node_coordinates(self,node_id):
+
+        return self.long_lat[node_id]
+
+    def get_cluster_coordinate(self,cluster_id):
+        return self.cluster_graph.nodes[cluster_id]["centroid"]
 
 if __name__ == "__main__":
-    G = city_graphs.graph_from_file("Banja Luka")
+    import utils
+    G = utils.graph_from_file("Banja Luka")
     print("Graph obtained, ",G)
     cg = ClusterGraph(G, threshold=1000)
     print("Cluster graph obtained, ",cg)
     from random import choice
-    print(networkx.dijkstra_path(cg.get_cluster_graph(),choice(list(cg.get_cluster_graph().nodes())),choice(list(cg.get_cluster_graph().nodes())),"weight"))
+    print(nx.dijkstra_path(cg.get_cluster_graph(),choice(list(cg.get_cluster_graph().nodes())),choice(list(cg.get_cluster_graph().nodes())),"weight"))
