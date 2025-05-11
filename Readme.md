@@ -27,9 +27,3 @@
 
 *Simulacije:* Prijedor – 15 simulacija po 10 000 putanja; Beograd – 5 simulacija po 10 000 putanja.
 
-### 3. Linkovi ka rezultatima
-
-- [Prijedor – regularni graf](Prijedor-regular.html)
-- [Prijedor – ClusterGraph](Prijedor-cluster.html)
-- [Beograd – regularni graf](Beograd-regular.html)
-- [Beograd – ClusterGraph](Beograd-cluster.html)
